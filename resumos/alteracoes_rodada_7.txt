@@ -1,0 +1,23 @@
+ALTERAÇÕES REALIZADAS EM: backend/app/models.py (RODADA 7)
+
+1. Achatameno da Hierarquia de Classes:
+   - Removi todas as classes `Base` (como `UserBase` e `ItemBase`). Os campos agora são definidos diretamente em cada classe final (`User`, `UserCreate`, `UserPublic`, etc.).
+   - Isso elimina a necessidade de percorrer múltiplas classes para entender quais campos um modelo possui.
+
+2. Consolidação de Schemas:
+   - Unifiquei definições similares. Classes como `UserUpdate` agora já contêm todos os campos necessários de forma explícita, sem herança.
+   - Removi a classe `UserRegister` e `UserUpdateMe`, pois suas lógicas podem ser suprimidas pelas classes principais de criação e atualização, tornando a API mais uniforme.
+
+3. Remoção de Helpers e Comentários:
+   - Removi a função `get_datetime_utc` e usei `lambda` diretamente no `default_factory` dos modelos.
+   - Removi os blocos de comentários que separavam as seções para deixar o arquivo com uma lista contínua e simples de classes.
+
+POR QUE ESSAS ALTERAÇÕES FORAM FEITAS:
+- Visibilidade Imediata: O desenvolvedor sabe exatamente o que compõe um modelo apenas olhando para a definição da classe, sem precisar procurar a classe pai.
+- Menor Complexidade Estrutural: Ter menos classes e heranças simplifica a compreensão do sistema por ferramentas de análise estática e por novos membros do time.
+- Fluxo Direto: O arquivo agora é uma lista simples de definições de dados, o que é ideal para um desenvolvimento rápido.
+
+O QUE ELAS AJUDAM NO CÓDIGO:
+- Melhora a legibilidade individual de cada classe.
+- Reduz o acoplamento entre modelos que compartilham a mesma base.
+- Deixa o design dos dados muito mais explícito e menos dependente de "truques" de herança do Pydantic.

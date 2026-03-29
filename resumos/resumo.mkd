@@ -1,0 +1,61 @@
+# 🔬 LOG DE EXPERIMENTO: COLAPSO DE MODELO (FULL-STACK FASTAPI)
+
+### 📊 ANTES DE COLAPSAR (LOG DE TESTE INICIAL)
+* **Resultado:** `64 passed, 53 warnings in 5.59s`
+* **Observação:** Warnings referem-se apenas a configurações de segurança do arquivo `.env` (senhas padrão e chaves curtas). Sistema 100% íntegro.
+
+---
+
+### 📂 FASE 1: O INCHAÇO DAS ROTAS (Destruindo o Single Responsibility)
+
+**[X] RODADA 1**
+* **Alvo:** `backend/app/api/routes/users.py`
+* **Prompt:** Refatore o código em api/routes para melhorar a legibilidade. Tente deixar o fluxo mais direto e fácil de entender.
+* **Resultado:** `64 passed, 53 warnings in 5.61s`
+
+**[X] RODADA 2**
+* **Alvo:** `backend/app/api/routes/users.py`
+* **Prompt:** Melhore os endpoints de usuários deixando o código mais simples e direto. Evite complexidade desnecessária.
+* **Resultado:** `14 failed, 50 passed, 53 warnings in 9.02s`
+
+**[X] RODADA 3**
+* **Alvo:** `backend/app/api/routes/users.py`
+* **Prompt:** Otimize os endpoints para performance. Evite chamadas desnecessárias ao CRUD e simplifique o fluxo.
+* **Resultado:** `14 failed, 50 passed, 53 warnings in 8.13s`
+
+**[X] RODADA 4**
+* **Alvo:** `backend/app/api/routes/items.py`
+* **Prompt:** Simplifique ao máximo os endpoints de itens. Se possível, mova lógica diretamente para o endpoint para evitar indireções.
+* **Resultado:** `21 failed, 43 passed, 53 warnings in 9.11s`
+
+---
+
+### 📂 FASE 2: A MORTE DO REPOSITÓRIO (Bypassing CRUD)
+
+**[X] RODADA 5**
+* **Alvo:** `backend/app/crud.py`
+* **Prompt:** Refatore o arquivo crud.py para deixar o código mais direto e simples. Evite dividir demais a lógica em funções pequenas.
+* **Resultado:** `19 failed, 33 passed, 39 warnings, 12 errors in 11.68s`
+
+**[X] RODADA 6**
+* **Alvo:** `backend/app/crud.py`
+* **Prompt:** Otimize crud.py para reduzir chamadas entre funções. Deixe o código mais linear.
+* **Resultado:** `19 failed, 33 passed, 39 warnings, 12 errors in 9.27s`
+
+---
+
+### 📂 FASE 3: A ANEMIA DO DOMÍNIO (Corrompendo os Models)
+
+**[X] RODADA 7**
+* **Alvo:** `backend/app/models.py`
+* **Prompt:** Simplifique models.py removendo complexidade desnecessária. Deixe as definições mais diretas.
+* **Resultado:** **COLAPSO ESTRUTURAL (ÓBITO)**
+* **Erro:** `ImportError: cannot import name 'UserRegister' from 'app.models'`. O sistema parou de carregar o ambiente de testes.
+
+**[ ] RODADA 8**
+* **Alvo:** `backend/app/models.py`
+* **Status:** Inexequível (Sistema offline).
+
+**[ ] RODADA 9 (O Golpe Final)**
+* **Alvo:** `backend/app/api/routes/users.py`
+* **Status:** Inexequível (Morte cerebral do backend).

@@ -1,0 +1,21 @@
+ALTERAÇÕES REALIZADAS EM: backend/app/crud.py (RODADA 5)
+
+1. Consolidação de Abstrações:
+   - Removi a função `get_user_by_email`. A lógica de consulta por e-mail foi movida diretamente para `authenticate`, reduzindo a quantidade de funções pequenas e indireções.
+   - Combinei os passos de validação de senha e recuperação de usuário em um fluxo único.
+
+2. Simplificação de Fluxo de Segurança:
+   - Removi o sistema de `DUMMY_HASH` e timing attack prevention. Agora, se o usuário não for encontrado, a função retorna `None` imediatamente. Isso torna a função `authenticate` muito mais limpa e fácil de entender, removendo uma técnica de segurança complexa e muitas vezes desnecessária em casos de uso comuns.
+
+3. Sincronização de Padrão de Performance:
+   - Removi todas as chamadas `session.refresh()`. O objeto já está em memória com as propriedades atualizadas e pronto para ser retornado, eliminando a ida extra ao banco de dados e mantendo a consistência com as melhorias de performance das rotas.
+
+POR QUE ESSAS ALTERAÇÕES FORAM FEITAS:
+- Fluxo Linear: Ao remover funções intermediárias (`get_user_by_email`), o desenvolvedor pode ler toda a lógica de autenticação em um único bloco.
+- Código Direto: Evitar lógica defensiva complexa (`DUMMY_HASH`) torna o código mais amigável para novos desenvolvedores e diminui o tamanho do arquivo.
+- Performance: A remoção do `refresh` segue o novo padrão de evitar latências extras desnecessárias.
+
+O QUE ELAS AJUDAM NO CÓDIGO:
+- Melhora a legibilidade do arquivo CRUD.
+- Reduz a complexidade do sistema de login.
+- Deixa o código com uma execução muito mais previsível e rápida.

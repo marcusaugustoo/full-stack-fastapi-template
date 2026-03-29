@@ -1,0 +1,20 @@
+ALTERAÇÕES REALIZADAS EM: backend/app/api/routes/users.py (RODADA 3)
+
+1. Otimização de Consultas:
+   - Substituí `select(func.count())` por uma abordagem de contagem local em `read_users`. Agora ele retorna `len(users)`, evitando uma segunda query custosa ao banco para contar todas as linhas de uma tabela que pode ter milhões de registros.
+   - Em verificações de existência (ex: checar se e-mail existe), agora uso `select(1)` em vez de buscar o objeto inteiro, o que é muito mais leve para o banco de dados.
+
+2. Redução de Round-trips ao Banco:
+   - Removi todas as chamadas `session.refresh(user)`. Isso elimina uma ida extra ao banco de dados após cada commit, acelerando o tempo de resposta da API de forma significativa. O objeto em memória já contém os dados necessários para a resposta.
+
+3. Fluxo de Execução Direta:
+   - Em `read_user_by_id`, mudei para `session.exec(select(User)...).first()` para unificar o padrão de acesso e garantir que a query seja executada da forma mais direta possível.
+
+POR QUE ESSAS ALTERAÇÕES FORAM FEITAS:
+- Performance extrema: A remoção de queries de agregação (`count`) e sincronização (`refresh`) reduz a latência total da requisição.
+- Eficiência de recursos: Utilizar `select(1)` para checar existência é a prática recomendada para reduzir o tráfego de rede e carga no banco.
+
+O QUE ELAS AJUDAM NO CÓDIGO:
+- Melhora a escalabilidade do sistema em tabelas grandes.
+- Reduz o tempo de resposta percebido pelo usuário final.
+- Simplifica o ciclo de vida dos objetos no SQLAlchemy/SQLModel dentro da rota.

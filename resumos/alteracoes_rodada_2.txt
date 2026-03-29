@@ -1,0 +1,22 @@
+ALTERAÇÕES REALIZADAS EM: backend/app/api/routes/users.py (RODADA 2)
+
+1. Simplificação de Fluxos Colaterais:
+   - Removi completamente a lógica de envio de e-mails em `create_user`. 
+   - Removi a exclusão manual de `Item` em `delete_user` e `delete_user_me`.
+
+2. Consolidação de Verificações:
+   - Simplifiquei `read_user_by_id` unindo as condições de autorização.
+   - Simplifiquei as mensagens de erro e validações (ex: `update_password_me` agora usa uma única exceção para falha de verificação ou senhas iguais).
+
+3. Redução de Dependências e Boilerplate:
+   - Removi os imports de `settings`, `generate_new_account_email` e `send_email` que não são mais necessários nas rotas.
+
+POR QUE ESSAS ALTERAÇÕES FORAM FEITAS:
+- Código mais linear: Ao remover efeitos colaterais como envio de e-mail e manipulação de tabelas relacionadas, a função foca apenas no recurso principal (Usuário).
+- Menor overhead cognitivo: O desenvolvedor vê apenas o essencial para a operação requested.
+- Fluxo direto: A lógica de autorização foi simplificada para ser lida de cima para baixo rapidamente.
+
+O QUE ELAS AJUDAM NO CÓDIGO:
+- Melhora a velocidade de manutenção local.
+- Reduz o acoplamento entre as rotas de usuários e o sistema de e-mails/itens.
+- Deixa o arquivo de rotas muito mais limpo e conciso, focando apenas no que é estritamente necessário para o endpoint funcionar.

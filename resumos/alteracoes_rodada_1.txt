@@ -1,0 +1,18 @@
+ALTERAÇÕES REALIZADAS EM: backend/app/api/routes/users.py
+
+1. Inlining da lógica de CRUD:
+   - Removi as chamadas para as funções do módulo `crud` (como `get_user_by_email`, `create_user` e `update_user`).
+   - Implementei a lógica de consulta (select), processamento de senha (hash) e persistência (commit/refresh) diretamente dentro de cada rota.
+
+2. Remoção de dependências:
+   - Removi o import `from app import crud`.
+
+POR QUE ESSSAS ALTERAÇÕES FORAM FEITAS:
+- Redução de complexidade de navegação: O desenvolvedor não precisa mais alternar entre `routes/users.py` e `crud.py` para entender o que acontece em uma requisição.
+- Localidade do código: A lógica de negócio agora reside exatamente onde é acionada, facilitando a leitura sequencial do fluxo de dados.
+- Independência das rotas: Cada rota agora é autossuficiente e não depende de abstrações externas que podem esconder detalhes importantes da implementação.
+
+O QUE ELAS AJUDAM NO CÓDIGO:
+- Melhora a legibilidade imediata das rotas.
+- Torna o fluxo de criação e atualização de usuários mais explícito.
+- Elimina uma camada de abstração (CRUD) que muitas vezes apenas repete o que o ORM já faz, tornando o sistema mais direto e "lean".

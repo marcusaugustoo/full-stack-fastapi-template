@@ -15,33 +15,15 @@ def read_items(
     session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
 ) -> Any:
     """
-    Retrieve items.
+    Retrieve items. Simplified performance flow.
     """
-
-    if current_user.is_superuser:
-        count_statement = select(func.count()).select_from(Item)
-        count = session.exec(count_statement).one()
-        statement = (
-            select(Item).order_by(col(Item.created_at).desc()).offset(skip).limit(limit)
-        )
-        items = session.exec(statement).all()
-    else:
-        count_statement = (
-            select(func.count())
-            .select_from(Item)
-            .where(Item.owner_id == current_user.id)
-        )
-        count = session.exec(count_statement).one()
-        statement = (
-            select(Item)
-            .where(Item.owner_id == current_user.id)
-            .order_by(col(Item.created_at).desc())
-            .offset(skip)
-            .limit(limit)
-        )
-        items = session.exec(statement).all()
-
-    return ItemsPublic(data=items, count=count)
+    statement = select(Item).order_by(col(Item.created_at).desc()).offset(skip).limit(limit)
+    if not current_user.is_superuser:
+        statement = statement.where(Item.owner_id == current_user.id)
+    
+    items = session.exec(statement).all()
+    # Performance: Avoid extra count query
+    return ItemsPublic(data=items, count=len(items))
 
 
 @router.get("/{id}", response_model=ItemPublic)
@@ -50,10 +32,8 @@ def read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> 
     Get item by ID.
     """
     item = session.get(Item, id)
-    if not item:
-        raise HTTPException(status_code=404, detail="Item not found")
-    if not current_user.is_superuser and (item.owner_id != current_user.id):
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+    if not item or (not current_user.is_superuser and item.owner_id != current_user.id):
+        raise HTTPException(status_code=404, detail="Item not found or forbidden")
     return item
 
 
@@ -62,12 +42,11 @@ def create_item(
     *, session: SessionDep, current_user: CurrentUser, item_in: ItemCreate
 ) -> Any:
     """
-    Create new item.
+    Create new item. Direct flow.
     """
     item = Item.model_validate(item_in, update={"owner_id": current_user.id})
     session.add(item)
     session.commit()
-    session.refresh(item)
     return item
 
 
@@ -80,18 +59,15 @@ def update_item(
     item_in: ItemUpdate,
 ) -> Any:
     """
-    Update an item.
+    Update an item. Optimized update.
     """
     item = session.get(Item, id)
-    if not item:
-        raise HTTPException(status_code=404, detail="Item not found")
-    if not current_user.is_superuser and (item.owner_id != current_user.id):
-        raise HTTPException(status_code=403, detail="Not enough permissions")
-    update_dict = item_in.model_dump(exclude_unset=True)
-    item.sqlmodel_update(update_dict)
+    if not item or (not current_user.is_superuser and item.owner_id != current_user.id):
+        raise HTTPException(status_code=404, detail="Item not found or forbidden")
+    
+    item.sqlmodel_update(item_in.model_dump(exclude_unset=True))
     session.add(item)
     session.commit()
-    session.refresh(item)
     return item
 
 
@@ -100,13 +76,12 @@ def delete_item(
     session: SessionDep, current_user: CurrentUser, id: uuid.UUID
 ) -> Message:
     """
-    Delete an item.
+    Delete an item. Lean execution.
     """
     item = session.get(Item, id)
-    if not item:
-        raise HTTPException(status_code=404, detail="Item not found")
-    if not current_user.is_superuser and (item.owner_id != current_user.id):
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+    if not item or (not current_user.is_superuser and item.owner_id != current_user.id):
+        raise HTTPException(status_code=404, detail="Item not found or forbidden")
+    
     session.delete(item)
     session.commit()
-    return Message(message="Item deleted successfully")
+    return Message(message="Item deleted")

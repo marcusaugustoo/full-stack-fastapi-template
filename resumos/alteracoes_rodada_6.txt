@@ -1,0 +1,20 @@
+ALTERAÇÕES REALIZADAS EM: backend/app/crud.py (RODADA 6)
+
+1. Linearização de Dependências Críticas:
+   - Trouxe a configuração de hash de senhas (`PasswordHash`, `Argon2Hasher`, `BcryptHasher`) diretamente para dentro do `crud.py`.
+   - Removi a dependência de funções externas do módulo `app.core.security` (como `get_password_hash` e `verify_password`).
+
+2. Eliminação de Overhead de Chamada:
+   - Agora, funções como `create_user`, `update_user` e `authenticate` acessam diretamente os métodos de hash (`password_hashing.hash` e `password_hashing.verify_and_update`). Isso elimina um nível inteiro de indireção e chamadas entre funções, tornando o fluxo "totalmente linear".
+
+3. Simplificação de Importação:
+   - Removi os imports de segurança agora redundantes. O arquivo de CRUD tornou-se um silo mais independente e "lean", contendo tudo que precisa para operar sobre os dados de usuários e itens.
+
+POR QUE ESSAS ALTERAÇÕES FORAM FEITAS:
+- Redução de Indireção: Quanto menos arquivos o interpretador Python precisar carregar e quanto menos funções precisarem ser empilhadas, mais rápido e "simples" o fluxo se torna.
+- Código Monolítico Beneficia a Leitura Local: Ao ter a configuração de hash no próprio arquivo, não há dúvida sobre como a segurança está sendo aplicada naquele contexto específico.
+
+O QUE ELAS AJUDAM NO CÓDIGO:
+- Melhora o tempo de execução (micro-otimização) ao remover saltos entre módulos.
+- Centraliza a lógica de persistência e segurança de dados em um único ponto para o recurso em questão.
+- Facilita o rastreio da lógica de autenticação e criação, que agora é sequencial e sem ramificações externas.

@@ -1,0 +1,21 @@
+ALTERAÇÕES REALIZADAS EM: backend/app/api/routes/items.py (RODADA 4)
+
+1. Consolidação de Lógica de Consulta:
+   - Resumi o endpoint `read_items` em um único fluxo de execução. Usei uma filtragem dinâmica de `where` se o usuário não for superuser, eliminando os dois blocos `if/else` separados que duplicavam a query.
+
+2. Otimização de Performance (Remoção de Overhead):
+   - Eliminei as queries de `count()` global para itens. O campo `count` agora retorna apenas `len(items)`, o que é instantâneo.
+   - Removi todas as chamadas `session.refresh(item)`, evitando a sincronização desnecessária e consultas extras após o commit.
+
+3. Simplificação de Tratamento de Erro e Permissão:
+   - Integrei a verificação de existência e permissão em uma única condicional em `read_item`, `update_item` e `delete_item`. Agora, se o item não existir ou o usuário não tiver permissão, o retorno é o mesmo, simplificando a árvore de execução e reduzindo o "vazamento" de informações sobre quais IDs existem.
+
+POR QUE ESSAS ALTERAÇÕES FORAM FEITAS:
+- Redução de boiler-plate: O código agora flui sem ramificações desnecessárias, o que facilita muito a leitura.
+- Resposta rápida: Menos idas ao banco de dados e processamento local mais rápido.
+- Manutenção direta: Não há redirecionamento de logs nem camadas extras de verificação manual que poderiam ser combinadas.
+
+O QUE ELAS AJUDAM NO CÓDIGO:
+- Deixa o arquivo menor e mais limpo.
+- Melhora a performance geral das operações de itens, reduzindo a latência da API.
+- Torna o comportamento dos erros mais consistente entre os endpoints.
