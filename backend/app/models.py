@@ -6,40 +6,59 @@ from sqlalchemy import DateTime
 from sqlmodel import Field, Relationship, SQLModel
 
 
-class User(SQLModel, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+def get_datetime_utc() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+# Shared properties
+class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
-    full_name: str | None = Field(default=None, max_length=255)
-    hashed_password: str
     is_active: bool = True
     is_superuser: bool = False
-    created_at: datetime | None = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
-        sa_type=DateTime(timezone=True),
-    )
-    items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+    full_name: str | None = Field(default=None, max_length=255)
 
 
-class UserCreate(SQLModel):
+# Properties to receive via API on creation
+class UserCreate(UserBase):
+    password: str = Field(min_length=8, max_length=128)
+
+
+class UserRegister(SQLModel):
     email: EmailStr = Field(max_length=255)
     password: str = Field(min_length=8, max_length=128)
     full_name: str | None = Field(default=None, max_length=255)
 
 
-class UserUpdate(SQLModel):
-    email: EmailStr | None = Field(default=None, max_length=255)
+# Properties to receive via API on update, all are optional
+class UserUpdate(UserBase):
+    email: EmailStr | None = Field(default=None, max_length=255)  # type: ignore
     password: str | None = Field(default=None, min_length=8, max_length=128)
+
+
+class UserUpdateMe(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
-    is_active: bool | None = True
-    is_superuser: bool | None = False
+    email: EmailStr | None = Field(default=None, max_length=255)
 
 
-class UserPublic(SQLModel):
+class UpdatePassword(SQLModel):
+    current_password: str = Field(min_length=8, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+# Database model, database table inferred from class name
+class User(UserBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    hashed_password: str
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+
+
+# Properties to return via API, id is always required
+class UserPublic(UserBase):
     id: uuid.UUID
-    email: EmailStr
-    full_name: str | None = None
-    is_active: bool
-    is_superuser: bool
     created_at: datetime | None = None
 
 
@@ -48,13 +67,28 @@ class UsersPublic(SQLModel):
     count: int
 
 
-class Item(SQLModel, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+# Shared properties
+class ItemBase(SQLModel):
     title: str = Field(min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=255)
+
+
+# Properties to receive on item creation
+class ItemCreate(ItemBase):
+    pass
+
+
+# Properties to receive on item update
+class ItemUpdate(ItemBase):
+    title: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
+
+
+# Database model, database table inferred from class name
+class Item(ItemBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     created_at: datetime | None = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
-        sa_type=DateTime(timezone=True),
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
     )
     owner_id: uuid.UUID = Field(
         foreign_key="user.id", nullable=False, ondelete="CASCADE"
@@ -62,20 +96,9 @@ class Item(SQLModel, table=True):
     owner: User | None = Relationship(back_populates="items")
 
 
-class ItemCreate(SQLModel):
-    title: str = Field(min_length=1, max_length=255)
-    description: str | None = Field(default=None, max_length=255)
-
-
-class ItemUpdate(SQLModel):
-    title: str | None = Field(default=None, min_length=1, max_length=255)
-    description: str | None = Field(default=None, max_length=255)
-
-
-class ItemPublic(SQLModel):
+# Properties to return via API, id is always required
+class ItemPublic(ItemBase):
     id: uuid.UUID
-    title: str
-    description: str | None
     owner_id: uuid.UUID
     created_at: datetime | None = None
 
@@ -85,20 +108,18 @@ class ItemsPublic(SQLModel):
     count: int
 
 
-class UpdatePassword(SQLModel):
-    current_password: str = Field(min_length=8, max_length=128)
-    new_password: str = Field(min_length=8, max_length=128)
-
-
+# Generic message
 class Message(SQLModel):
     message: str
 
 
+# JSON payload containing access token
 class Token(SQLModel):
     access_token: str
     token_type: str = "bearer"
 
 
+# Contents of JWT token
 class TokenPayload(SQLModel):
     sub: str | None = None
 

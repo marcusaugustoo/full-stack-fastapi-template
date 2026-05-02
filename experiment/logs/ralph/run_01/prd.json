@@ -1,0 +1,90 @@
+{
+  "prd_version": "2.0",
+  "project": "fastapi/full-stack-fastapi-template",
+  "collapse_context_summary": "O sistema sofreu Model Collapse em 7 rodadas de simplificação excessiva, resultando na perda de heranças, remoção de classes como UserRegister em models.py, eliminação do módulo CRUD com inlining nas rotas, e quebra de responsabilidades. O backend não inicializa devido a um ImportError.",
+  "goal": "Restaurar a integridade funcional e arquitetural revertendo as alterações degradantes em models.py, crud.py e rotas.",
+  "stories": [
+    {
+      "story_id": "S-001",
+      "correction_id": "C-001",
+      "title": "Restaurar modelos de dados e heranças em models.py",
+      "scope": {
+        "files": ["backend/app/models.py"],
+        "anomaly_ids": ["A-001"]
+      },
+      "acceptance_criteria": [
+        "Classes base (UserBase, ItemBase) restauradas",
+        "Classes auxiliares (UserRegister, UserUpdateMe) e helpers recriados",
+        "Typecheck passes"
+      ],
+      "size_estimate": "SMALL",
+      "status": "DONE",
+      "timestamp_start": "2026-05-02T03:53:20Z",
+      "timestamp_end": "2026-05-02T03:53:27Z",
+      "attempt_count": 1
+    },
+    {
+      "story_id": "S-002",
+      "correction_id": "C-002",
+      "title": "Restaurar arquitetura de CRUD em crud.py",
+      "scope": {
+        "files": ["backend/app/crud.py"],
+        "anomaly_ids": ["A-002"]
+      },
+      "acceptance_criteria": [
+        "Funções de abstração de dados e segurança (get_user_by_email, DUMMY_HASH) restauradas",
+        "Typecheck passes"
+      ],
+      "size_estimate": "SMALL",
+      "status": "DONE",
+      "timestamp_start": "2026-05-02T03:53:28Z",
+      "timestamp_end": "2026-05-02T03:53:34Z",
+      "attempt_count": 1,
+      "depends_on": ["S-001"]
+    },
+    {
+      "story_id": "S-003",
+      "correction_id": "C-003",
+      "title": "Restaurar rotas de items.py",
+      "scope": {
+        "files": ["backend/app/api/routes/items.py"],
+        "anomaly_ids": ["A-003"]
+      },
+      "acceptance_criteria": [
+        "Uso de CRUD reestabelecido nas rotas de items",
+        "Typecheck passes"
+      ],
+      "size_estimate": "SMALL",
+      "status": "DONE",
+      "timestamp_start": "2026-05-02T03:53:35Z",
+      "timestamp_end": "2026-05-02T03:53:41Z",
+      "attempt_count": 1,
+      "depends_on": ["S-002"]
+    },
+    {
+      "story_id": "S-004",
+      "correction_id": "C-004",
+      "title": "Restaurar rotas de users.py",
+      "scope": {
+        "files": ["backend/app/api/routes/users.py"],
+        "anomaly_ids": ["A-004"]
+      },
+      "acceptance_criteria": [
+        "Inlining revertido, delegando responsabilidades para o crud.py",
+        "Typecheck passes"
+      ],
+      "size_estimate": "SMALL",
+      "status": "DONE",
+      "timestamp_start": "2026-05-02T03:53:41Z",
+      "timestamp_end": "2026-05-02T03:53:41Z",
+      "attempt_count": 1,
+      "depends_on": ["S-002"]
+    }
+  ],
+  "constraints": {
+    "no_new_dependencies": true,
+    "preserve_public_contracts": true,
+    "no_test_removal": true
+  },
+  "correction_log": []
+}

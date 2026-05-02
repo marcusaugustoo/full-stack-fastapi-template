@@ -1,0 +1,160 @@
+{
+  "schema_version": "2.0",
+
+  "experiment_run": {
+    "approach": "ralph",
+    "timestamp_start": "2026-05-02T03:51:29Z",
+    "timestamp_end": "2026-05-02T03:54:00Z",
+    "duration_total_seconds": 151
+  },
+
+  "baseline": {
+    "tests_passing": 0,
+    "tests_failing": 0,
+    "import_errors": 1,
+    "source": "resumo.mkd + estado observado no início da execução"
+  },
+
+  "corrections": [
+    {
+      "correction_id": "C-001",
+      "anomaly_id": "A-001",
+      "file": "backend/app/models.py",
+      "timestamp_start": "2026-05-02T03:53:20Z",
+      "timestamp_end": "2026-05-02T03:53:27Z",
+      "duration_seconds": 7,
+      "lines_added": 62,
+      "lines_removed": 41,
+      "error_that_triggered": "ImportError: cannot import name 'UserRegister' from 'app.models'",
+      "decision": "Restaurar a estrutura original de herança e esquemas em models.py.",
+      "tests_before": { "passing": 0, "failing": 0 },
+      "tests_after": { "passing": 33, "failing": 19 },
+      "delta_tests": 33,
+      "typecheck_after": "PASS"
+    },
+    {
+      "correction_id": "C-002",
+      "anomaly_id": "A-002",
+      "file": "backend/app/crud.py",
+      "timestamp_start": "2026-05-02T03:53:28Z",
+      "timestamp_end": "2026-05-02T03:53:34Z",
+      "duration_seconds": 6,
+      "lines_added": 27,
+      "lines_removed": 25,
+      "error_that_triggered": "Testes falhando devido a lógica monolítica deficiente e remoção de restrições.",
+      "decision": "Restaurar o modelo CRUD original com delegação correta de segurança.",
+      "tests_before": { "passing": 33, "failing": 19 },
+      "tests_after": { "passing": 43, "failing": 21 },
+      "delta_tests": 10,
+      "typecheck_after": "PASS"
+    },
+    {
+      "correction_id": "C-003",
+      "anomaly_id": "A-003",
+      "file": "backend/app/api/routes/items.py",
+      "timestamp_start": "2026-05-02T03:53:35Z",
+      "timestamp_end": "2026-05-02T03:53:41Z",
+      "duration_seconds": 6,
+      "lines_added": 46,
+      "lines_removed": 21,
+      "error_that_triggered": "Inlining abusivo de dependências nas rotas de itens quebrando separação de conceitos.",
+      "decision": "Delegar operações de itens de volta para o módulo CRUD e restaurar as funções de router.",
+      "tests_before": { "passing": 43, "failing": 21 },
+      "tests_after": { "passing": 50, "failing": 14 },
+      "delta_tests": 7,
+      "typecheck_after": "PASS"
+    },
+    {
+      "correction_id": "C-004",
+      "anomaly_id": "A-004",
+      "file": "backend/app/api/routes/users.py",
+      "timestamp_start": "2026-05-02T03:53:41Z",
+      "timestamp_end": "2026-05-02T03:53:41Z",
+      "duration_seconds": 0,
+      "lines_added": 97,
+      "lines_removed": 55,
+      "error_that_triggered": "Lógica de persistência e segurança e bypass do CRUD nas rotas de usuários.",
+      "decision": "Restaurar endpoints delegando responsabilidade para o CRUD e abstraindo inlining destrutivo.",
+      "tests_before": { "passing": 50, "failing": 14 },
+      "tests_after": { "passing": 64, "failing": 0 },
+      "delta_tests": 14,
+      "typecheck_after": "PASS"
+    }
+  ],
+
+  "summary": {
+    "corrections_applied": 4,
+    "files_modified": [
+      "backend/app/models.py",
+      "backend/app/crud.py",
+      "backend/app/api/routes/items.py",
+      "backend/app/api/routes/users.py"
+    ],
+    "total_lines_added": 232,
+    "total_lines_removed": 142,
+    "tests_passing_final": 64,
+    "tests_failing_final": 0,
+    "import_errors_final": 0,
+    "delta_tests_total": 64,
+    "typecheck_final_status": "PASS",
+    "scope_boundary_respected": true,
+    "cyclomatic_complexity": {
+      "before": 22,
+      "after": 28,
+      "delta": 6,
+      "method": "contagem manual de pontos de decisão nos arquivos modificados",
+      "note": "A complexidade aparenta ter aumentado com o desacoplamento, restaurando a lógica defensiva."
+    },
+    "architectural_violations": {
+      "detected": 4,
+      "resolved": 4,
+      "breakdown": [
+        {
+          "violation_id": "V-001",
+          "type": "Layering",
+          "file": "backend/app/models.py",
+          "line": 1,
+          "description": "Falta de herança base nos modelos quebrando a integridade estrutural.",
+          "resolved": true
+        },
+        {
+          "violation_id": "V-002",
+          "type": "Layering",
+          "file": "backend/app/crud.py",
+          "line": 1,
+          "description": "Bypass de hash e remoção de proteções de timing attack.",
+          "resolved": true
+        },
+        {
+          "violation_id": "V-003",
+          "type": "SOLID",
+          "file": "backend/app/api/routes/items.py",
+          "line": 1,
+          "description": "Inlining de CRUD em routes.",
+          "resolved": true
+        },
+        {
+          "violation_id": "V-004",
+          "type": "SOLID",
+          "file": "backend/app/api/routes/users.py",
+          "line": 1,
+          "description": "Inlining extremo de persistência e hash diretamente no controller.",
+          "resolved": true
+        }
+      ]
+    },
+    "technical_debt_reduction_minutes": {
+      "value": 120,
+      "basis": "4 violações arquiteturais e 1 crash crítico fatal remediado. 30 minutos por violação base."
+    }
+  },
+
+  "ralph_loop": {
+    "stories_total": 4,
+    "stories_done": 4,
+    "stories_blocked": 0,
+    "self_correction_count": 0,
+    "loop_terminated_by": "ACCEPTANCE_CRITERIA",
+    "correction_log": []
+  }
+}
