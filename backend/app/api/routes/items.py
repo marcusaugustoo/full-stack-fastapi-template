@@ -15,15 +15,34 @@ def read_items(
     session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
 ) -> Any:
     """
-    Retrieve items. Simplified performance flow.
+    Retrieve items.
     """
-    statement = select(Item).order_by(col(Item.created_at).desc()).offset(skip).limit(limit)
-    if not current_user.is_superuser:
-        statement = statement.where(Item.owner_id == current_user.id)
-    
-    items = session.exec(statement).all()
-    # Performance: Avoid extra count query
-    return ItemsPublic(data=items, count=len(items))
+
+    if current_user.is_superuser:
+        count_statement = select(func.count()).select_from(Item)
+        count = session.exec(count_statement).one()
+        statement = (
+            select(Item).order_by(col(Item.created_at).desc()).offset(skip).limit(limit)
+        )
+        items = session.exec(statement).all()
+    else:
+        count_statement = (
+            select(func.count())
+            .select_from(Item)
+            .where(Item.owner_id == current_user.id)
+        )
+        count = session.exec(count_statement).one()
+        statement = (
+            select(Item)
+            .where(Item.owner_id == current_user.id)
+            .order_by(col(Item.created_at).desc())
+            .offset(skip)
+            .limit(limit)
+        )
+        items = session.exec(statement).all()
+
+    items_public = [ItemPublic.model_validate(item) for item in items]
+    return ItemsPublic(data=items_public, count=count)
 
 
 @router.get("/{id}", response_model=ItemPublic)
@@ -32,8 +51,10 @@ def read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> 
     Get item by ID.
     """
     item = session.get(Item, id)
-    if not item or (not current_user.is_superuser and item.owner_id != current_user.id):
-        raise HTTPException(status_code=404, detail="Item not found or forbidden")
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    if not current_user.is_superuser and (item.owner_id != current_user.id):
+        raise HTTPException(status_code=403, detail="Not enough permissions")
     return item
 
 
@@ -42,11 +63,12 @@ def create_item(
     *, session: SessionDep, current_user: CurrentUser, item_in: ItemCreate
 ) -> Any:
     """
-    Create new item. Direct flow.
+    Create new item.
     """
     item = Item.model_validate(item_in, update={"owner_id": current_user.id})
     session.add(item)
     session.commit()
+    session.refresh(item)
     return item
 
 
@@ -59,15 +81,18 @@ def update_item(
     item_in: ItemUpdate,
 ) -> Any:
     """
-    Update an item. Optimized update.
+    Update an item.
     """
     item = session.get(Item, id)
-    if not item or (not current_user.is_superuser and item.owner_id != current_user.id):
-        raise HTTPException(status_code=404, detail="Item not found or forbidden")
-    
-    item.sqlmodel_update(item_in.model_dump(exclude_unset=True))
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    if not current_user.is_superuser and (item.owner_id != current_user.id):
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    update_dict = item_in.model_dump(exclude_unset=True)
+    item.sqlmodel_update(update_dict)
     session.add(item)
     session.commit()
+    session.refresh(item)
     return item
 
 
@@ -76,12 +101,13 @@ def delete_item(
     session: SessionDep, current_user: CurrentUser, id: uuid.UUID
 ) -> Message:
     """
-    Delete an item. Lean execution.
+    Delete an item.
     """
     item = session.get(Item, id)
-    if not item or (not current_user.is_superuser and item.owner_id != current_user.id):
-        raise HTTPException(status_code=404, detail="Item not found or forbidden")
-    
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    if not current_user.is_superuser and (item.owner_id != current_user.id):
+        raise HTTPException(status_code=403, detail="Not enough permissions")
     session.delete(item)
     session.commit()
-    return Message(message="Item deleted")
+    return Message(message="Item deleted successfully")
